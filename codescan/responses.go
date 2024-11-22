@@ -243,6 +243,9 @@ func (r *responseBuilder) buildFromField(fld *types.Var, tpe types.Type, typable
 			return nil
 		}
 		return fmt.Errorf("unable to find package and source file for: %s", ftpe.String())
+	case *types.Alias:
+		return nil
+		// return r.buildFromField(fld, ftpe.Underlying(), typable, seen)
 	default:
 		return fmt.Errorf("unknown type for %s: %T", fld.String(), fld.Type())
 	}

@@ -471,6 +471,9 @@ func (s *schemaBuilder) buildFromType(tpe types.Type, tgt swaggerTypable) error 
 
 			return nil
 		}
+	case *types.Alias:
+		return nil
+		// return s.buildFromType(titpe.Underlying(), tgt.Items())
 	default:
 		panic(fmt.Sprintf("WARNING: can't determine refined type %s (%T)", titpe.String(), titpe))
 	}
