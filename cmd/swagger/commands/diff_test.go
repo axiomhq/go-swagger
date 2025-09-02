@@ -41,7 +41,6 @@ func TestDiffForVariousCombinations(t *testing.T) {
 	testCases := makeTestCases(t, allTests)
 
 	for i, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := DiffCommand{}
 			cmd.Args.OldSpec = tc.oldSpec

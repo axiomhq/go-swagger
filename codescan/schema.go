@@ -18,7 +18,7 @@ import (
 	"github.com/go-openapi/spec"
 )
 
-func addExtension(ve *spec.VendorExtensible, key string, value interface{}) {
+func addExtension(ve *spec.VendorExtensible, key string, value any) {
 	if os.Getenv("SWAGGER_GENERATE_EXTENSION") == "false" {
 		return
 	}
@@ -69,11 +69,11 @@ func (st schemaTypable) AdditionalProperties() swaggerTypable {
 
 func (st schemaTypable) Level() int { return st.level }
 
-func (st schemaTypable) AddExtension(key string, value interface{}) {
+func (st schemaTypable) AddExtension(key string, value any) {
 	addExtension(&st.schema.VendorExtensible, key, value)
 }
 
-func (st schemaTypable) WithEnum(values ...interface{}) {
+func (st schemaTypable) WithEnum(values ...any) {
 	st.schema.WithEnum(values...)
 }
 
@@ -97,15 +97,15 @@ func (sv schemaValidations) SetMinimum(val float64, exclusive bool) {
 	sv.current.Minimum = &val
 	sv.current.ExclusiveMinimum = exclusive
 }
-func (sv schemaValidations) SetMultipleOf(val float64)  { sv.current.MultipleOf = &val }
-func (sv schemaValidations) SetMinItems(val int64)      { sv.current.MinItems = &val }
-func (sv schemaValidations) SetMaxItems(val int64)      { sv.current.MaxItems = &val }
-func (sv schemaValidations) SetMinLength(val int64)     { sv.current.MinLength = &val }
-func (sv schemaValidations) SetMaxLength(val int64)     { sv.current.MaxLength = &val }
-func (sv schemaValidations) SetPattern(val string)      { sv.current.Pattern = val }
-func (sv schemaValidations) SetUnique(val bool)         { sv.current.UniqueItems = val }
-func (sv schemaValidations) SetDefault(val interface{}) { sv.current.Default = val }
-func (sv schemaValidations) SetExample(val interface{}) { sv.current.Example = val }
+func (sv schemaValidations) SetMultipleOf(val float64) { sv.current.MultipleOf = &val }
+func (sv schemaValidations) SetMinItems(val int64)     { sv.current.MinItems = &val }
+func (sv schemaValidations) SetMaxItems(val int64)     { sv.current.MaxItems = &val }
+func (sv schemaValidations) SetMinLength(val int64)    { sv.current.MinLength = &val }
+func (sv schemaValidations) SetMaxLength(val int64)    { sv.current.MaxLength = &val }
+func (sv schemaValidations) SetPattern(val string)     { sv.current.Pattern = val }
+func (sv schemaValidations) SetUnique(val bool)        { sv.current.UniqueItems = val }
+func (sv schemaValidations) SetDefault(val any)        { sv.current.Default = val }
+func (sv schemaValidations) SetExample(val any)        { sv.current.Example = val }
 func (sv schemaValidations) SetEnum(val string) {
 	sv.current.Enum = parseEnum(val, &spec.SimpleSchema{Format: sv.current.Format, Type: sv.current.Type[0]})
 }
@@ -138,7 +138,7 @@ func (s *schemaBuilder) inferNames() (goName string, name string) {
 
 DECLS:
 	for _, cmt := range s.decl.Comments.List {
-		for _, ln := range strings.Split(cmt.Text, "\n") {
+		for ln := range strings.SplitSeq(cmt.Text, "\n") {
 			matches := rxModelOverride.FindStringSubmatch(ln)
 			if len(matches) > 0 {
 				s.annotated = true
@@ -409,7 +409,7 @@ func (s *schemaBuilder) buildFromType(tpe types.Type, tgt swaggerTypable) error 
 			}
 
 			if defaultName, ok := defaultName(cmt); ok {
-				debugLog(defaultName) //nolint:govet
+				debugLog("%s", defaultName) //nolint:govet
 				return nil
 			}
 
@@ -557,7 +557,7 @@ func (s *schemaBuilder) buildFromInterface(decl *entityDecl, it *types.Interface
 			}
 			if afld.Doc != nil {
 				for _, cmt := range afld.Doc.List {
-					for _, ln := range strings.Split(cmt.Text, "\n") {
+					for ln := range strings.SplitSeq(cmt.Text, "\n") {
 						matches := rxAllOf.FindStringSubmatch(ln)
 						ml := len(matches)
 						if ml > 1 {
@@ -629,7 +629,7 @@ func (s *schemaBuilder) buildFromInterface(decl *entityDecl, it *types.Interface
 		name := fld.Name()
 		if afld.Doc != nil {
 			for _, cmt := range afld.Doc.List {
-				for _, ln := range strings.Split(cmt.Text, "\n") {
+				for ln := range strings.SplitSeq(cmt.Text, "\n") {
 					matches := rxName.FindStringSubmatch(ln)
 					ml := len(matches)
 					if ml > 1 {
@@ -761,7 +761,7 @@ func (s *schemaBuilder) buildFromStruct(decl *entityDecl, st *types.Struct, sche
 
 		if afld.Doc != nil {
 			for _, cmt := range afld.Doc.List {
-				for _, ln := range strings.Split(cmt.Text, "\n") {
+				for ln := range strings.SplitSeq(cmt.Text, "\n") {
 					matches := rxAllOf.FindStringSubmatch(ln)
 					ml := len(matches)
 					if ml > 1 {

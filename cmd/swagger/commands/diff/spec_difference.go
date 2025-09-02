@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"sort"
+	"slices"
 	"strings"
 )
 
@@ -171,9 +171,7 @@ func (sd SpecDifferences) reportChanges(compat Compatibility) io.Reader {
 		}
 	}
 
-	sort.Slice(toReportList, func(i, j int) bool {
-		return toReportList[i] < toReportList[j]
-	})
+	slices.Sort(toReportList)
 
 	for _, eachDiff := range toReportList {
 		fmt.Fprintln(&out, eachDiff)

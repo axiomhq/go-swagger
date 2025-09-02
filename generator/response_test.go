@@ -360,7 +360,7 @@ func TestGenResponses_Issue776_SwaggerTemplate(t *testing.T) {
 
 func TestIssue846(t *testing.T) {
 	// do it 8 times, to ensure it's always in the same order
-	for i := 0; i < 8; i++ {
+	for range 8 {
 		b, err := opBuilder("getFoo", "../fixtures/bugs/846/swagger.yml")
 		require.NoError(t, err)
 		op, err := b.MakeOperation()

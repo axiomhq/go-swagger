@@ -12,7 +12,7 @@ import (
 
 	"github.com/go-openapi/loads"
 	"github.com/go-openapi/spec"
-	"github.com/go-openapi/swag"
+	"github.com/go-openapi/swag/yamlutils"
 )
 
 // ExpandSpec is a command that expands the $refs in a swagger document.
@@ -61,7 +61,7 @@ func writeToFile(swspec *spec.Swagger, pretty bool, format string, output string
 		// marshals as YAML
 		b, err = json.Marshal(swspec)
 		if err == nil {
-			var data swag.JSONMapSlice
+			var data yamlutils.YAMLMapSlice
 			if erg := json.Unmarshal(b, &data); erg != nil {
 				log.Fatalln(erg)
 			}

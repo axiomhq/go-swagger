@@ -2,6 +2,7 @@ package generator
 
 import (
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 
@@ -115,13 +116,7 @@ func (a *appGenerator) makeSerializers(mediaTypes []string, known func(string) (
 		}
 		// provide all known parameters (currently unused by codegen templates)
 		if params := strings.TrimSpace(mediaParameters(media)); params != "" {
-			found := false
-			for _, p := range ser.Parameters {
-				if params == p {
-					found = true
-					break
-				}
-			}
+			found := slices.Contains(ser.Parameters, params)
 			if !found {
 				ser.Parameters = append(ser.Parameters, params)
 			}

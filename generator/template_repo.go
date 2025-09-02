@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"maps"
 	"math"
 	"os"
 	"path"
@@ -202,9 +203,7 @@ func DefaultFuncMap(lang *LanguageOpts) template.FuncMap {
 		},
 	}
 
-	for k, v := range extra {
-		f[k] = v
-	}
+	maps.Copy(f, extra)
 
 	return f
 }
@@ -379,12 +378,8 @@ func (t *Repository) ShallowClone() *Repository {
 	t.mux.Lock()
 	defer t.mux.Unlock()
 
-	for k, file := range t.files {
-		clone.files[k] = file
-	}
-	for k, tpl := range t.templates {
-		clone.templates[k] = tpl
-	}
+	maps.Copy(clone.files, t.files)
+	maps.Copy(clone.templates, t.templates)
 	return clone
 }
 
@@ -681,13 +676,13 @@ func containsPkgStr(str string) bool {
 func padSurround(entry, padWith string, i, ln int) string {
 	var res []string
 	if i > 0 {
-		for j := 0; j < i; j++ {
+		for range i {
 			res = append(res, padWith)
 		}
 	}
 	res = append(res, entry)
 	tot := ln - i - 1
-	for j := 0; j < tot; j++ {
+	for range tot {
 		res = append(res, padWith)
 	}
 	return strings.Join(res, ",")

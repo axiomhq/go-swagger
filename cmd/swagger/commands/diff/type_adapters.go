@@ -2,6 +2,7 @@ package diff
 
 import (
 	"github.com/go-openapi/spec"
+	"maps"
 )
 
 func forItems(items *spec.Items) *spec.Schema {
@@ -104,7 +105,6 @@ func getURLMethodsFor(spec *spec.Swagger) URLMethods {
 	returnURLMethods := URLMethods{}
 
 	for url, eachPath := range spec.Paths.Paths {
-		eachPath := eachPath
 		opsMap := toMap(&eachPath)
 		for method, op := range opsMap {
 			returnURLMethods[URLMethod{url, method}] = &PathItemOp{&eachPath, op, eachPath.Extensions}
@@ -134,7 +134,6 @@ func propertiesFor(schema *spec.Schema, getRefFn SchemaFromRefFn) PropertyMap {
 
 	if schema.Properties != nil {
 		for name, prop := range schema.Properties {
-			prop := prop
 			required := requiredMap[name]
 			props[name] = PropertyDefn{Schema: &prop, Required: required}
 		}
@@ -142,14 +141,12 @@ func propertiesFor(schema *spec.Schema, getRefFn SchemaFromRefFn) PropertyMap {
 	for _, e := range schema.AllOf {
 		eachAllOf := e
 		allOfMap := propertiesFor(&eachAllOf, getRefFn)
-		for name, prop := range allOfMap {
-			props[name] = prop
-		}
+		maps.Copy(props, allOfMap)
 	}
 	return props
 }
 
-func getRef(item interface{}) spec.Ref {
+func getRef(item any) spec.Ref {
 	switch s := item.(type) {
 	case *spec.Refable:
 		return s.Ref

@@ -50,7 +50,6 @@ func TestDiffForVariousCombinations(t *testing.T) {
 	testCases := makeTestCases(t, matches)
 
 	for i, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			diffs, err := getDiffs(tc.oldSpec, tc.newSpec)
 			require.NoError(t, err)

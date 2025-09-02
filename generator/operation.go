@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"maps"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -1131,9 +1132,7 @@ func (b *codeGenOpBuilder) buildOperationSchema(schemaPath, containerName, schem
 	if err := sc.makeGenSchema(); err != nil {
 		return GenSchema{}, err
 	}
-	for alias, pkg := range findImports(&sc.GenSchema) {
-		b.Imports[alias] = pkg
-	}
+	maps.Copy(b.Imports, findImports(&sc.GenSchema))
 
 	if sch.Ref.String() == "" && len(sc.ExtraSchemas) > 0 {
 		newSchema, err := b.liftExtraSchemas(resolver, br, bs, &sc)
