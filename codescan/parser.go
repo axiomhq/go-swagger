@@ -9,6 +9,7 @@ import (
 	"log"
 	"reflect"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -80,10 +81,8 @@ func rxf(rxp, ar string) *regexp.Regexp {
 func allOfMember(comments *ast.CommentGroup) bool {
 	if comments != nil {
 		for _, cmt := range comments.List {
-			for _, ln := range strings.Split(cmt.Text, "\n") {
-				if rxAllOf.MatchString(ln) {
-					return true
-				}
+			if slices.ContainsFunc(strings.Split(cmt.Text, "\n"), rxAllOf.MatchString) {
+				return true
 			}
 		}
 	}
@@ -93,10 +92,8 @@ func allOfMember(comments *ast.CommentGroup) bool {
 func fileParam(comments *ast.CommentGroup) bool {
 	if comments != nil {
 		for _, cmt := range comments.List {
-			for _, ln := range strings.Split(cmt.Text, "\n") {
-				if rxFileUpload.MatchString(ln) {
-					return true
-				}
+			if slices.ContainsFunc(strings.Split(cmt.Text, "\n"), rxFileUpload.MatchString) {
+				return true
 			}
 		}
 	}
@@ -106,7 +103,7 @@ func fileParam(comments *ast.CommentGroup) bool {
 func strfmtName(comments *ast.CommentGroup) (string, bool) {
 	if comments != nil {
 		for _, cmt := range comments.List {
-			for _, ln := range strings.Split(cmt.Text, "\n") {
+			for ln := range strings.SplitSeq(cmt.Text, "\n") {
 				matches := rxStrFmt.FindStringSubmatch(ln)
 				if len(matches) > 1 && len(strings.TrimSpace(matches[1])) > 0 {
 					return strings.TrimSpace(matches[1]), true
@@ -120,10 +117,8 @@ func strfmtName(comments *ast.CommentGroup) (string, bool) {
 func ignored(comments *ast.CommentGroup) bool {
 	if comments != nil {
 		for _, cmt := range comments.List {
-			for _, ln := range strings.Split(cmt.Text, "\n") {
-				if rxIgnoreOverride.MatchString(ln) {
-					return true
-				}
+			if slices.ContainsFunc(strings.Split(cmt.Text, "\n"), rxIgnoreOverride.MatchString) {
+				return true
 			}
 		}
 	}
@@ -133,7 +128,7 @@ func ignored(comments *ast.CommentGroup) bool {
 func enumName(comments *ast.CommentGroup) (string, bool) {
 	if comments != nil {
 		for _, cmt := range comments.List {
-			for _, ln := range strings.Split(cmt.Text, "\n") {
+			for ln := range strings.SplitSeq(cmt.Text, "\n") {
 				matches := rxEnum.FindStringSubmatch(ln)
 				if len(matches) > 1 && len(strings.TrimSpace(matches[1])) > 0 {
 					return strings.TrimSpace(matches[1]), true
@@ -147,10 +142,8 @@ func enumName(comments *ast.CommentGroup) (string, bool) {
 func aliasParam(comments *ast.CommentGroup) bool {
 	if comments != nil {
 		for _, cmt := range comments.List {
-			for _, ln := range strings.Split(cmt.Text, "\n") {
-				if rxAlias.MatchString(ln) {
-					return true
-				}
+			if slices.ContainsFunc(strings.Split(cmt.Text, "\n"), rxAlias.MatchString) {
+				return true
 			}
 		}
 	}
@@ -170,7 +163,7 @@ func isAliasParam(prop swaggerTypable) bool {
 func defaultName(comments *ast.CommentGroup) (string, bool) {
 	if comments != nil {
 		for _, cmt := range comments.List {
-			for _, ln := range strings.Split(cmt.Text, "\n") {
+			for ln := range strings.SplitSeq(cmt.Text, "\n") {
 				matches := rxDefault.FindStringSubmatch(ln)
 				if len(matches) > 1 && len(strings.TrimSpace(matches[1])) > 0 {
 					return strings.TrimSpace(matches[1]), true
@@ -185,7 +178,7 @@ func typeName(comments *ast.CommentGroup) (string, bool) {
 	var typ string
 	if comments != nil {
 		for _, cmt := range comments.List {
-			for _, ln := range strings.Split(cmt.Text, "\n") {
+			for ln := range strings.SplitSeq(cmt.Text, "\n") {
 				matches := rxType.FindStringSubmatch(ln)
 				if len(matches) > 1 && len(strings.TrimSpace(matches[1])) > 0 {
 					typ = strings.TrimSpace(matches[1])
@@ -203,8 +196,8 @@ type swaggerTypable interface {
 	Items() swaggerTypable
 	Schema() *spec.Schema
 	Level() int
-	AddExtension(key string, value interface{})
-	WithEnum(...interface{})
+	AddExtension(key string, value any)
+	WithEnum(...any)
 	WithEnumDescription(desc string)
 	In() string
 }
@@ -317,7 +310,7 @@ func (y *yamlParser) Parse(lines []string) error {
 	uncommented = append(uncommented, removeYamlIndent(lines)...)
 
 	yamlContent := strings.Join(uncommented, "\n")
-	var yamlValue interface{}
+	var yamlValue any
 	err := yaml.Unmarshal([]byte(yamlContent), &yamlValue)
 	if err != nil {
 		return err
@@ -428,7 +421,7 @@ func (sp *yamlSpecScanner) Parse(doc *ast.CommentGroup) error {
 	var startedYAMLSpec bool
 COMMENTS:
 	for _, c := range doc.List {
-		for _, line := range strings.Split(c.Text, "\n") {
+		for line := range strings.SplitSeq(c.Text, "\n") {
 			if rxSwaggerAnnotation.MatchString(line) {
 				break COMMENTS // a new swagger: annotation terminates this parser
 			}
@@ -474,7 +467,7 @@ func (sp *yamlSpecScanner) UnmarshalSpec(u func([]byte) error) (err error) {
 	specYaml = removeIndent(specYaml)
 
 	// 1. parse yaml lines
-	yamlValue := make(map[interface{}]interface{})
+	yamlValue := make(map[any]any)
 
 	yamlContent := strings.Join(specYaml, "\n")
 	err = yaml.Unmarshal([]byte(yamlContent), &yamlValue)
@@ -586,7 +579,7 @@ func (st *sectionedParser) Parse(doc *ast.CommentGroup) error {
 	}
 COMMENTS:
 	for _, c := range doc.List {
-		for _, line := range strings.Split(c.Text, "\n") {
+		for line := range strings.SplitSeq(c.Text, "\n") {
 			if rxSwaggerAnnotation.MatchString(line) {
 				if rxIgnoreOverride.MatchString(line) {
 					st.ignored = true
@@ -673,8 +666,8 @@ type validationBuilder interface {
 
 	SetUnique(bool)
 	SetEnum(string)
-	SetDefault(interface{})
-	SetExample(interface{})
+	SetDefault(any)
+	SetExample(any)
 }
 
 type valueParser interface {
@@ -939,7 +932,7 @@ func (se *setEnum) Parse(lines []string) error {
 	return nil
 }
 
-func parseValueFromSchema(s string, schema *spec.SimpleSchema) (interface{}, error) {
+func parseValueFromSchema(s string, schema *spec.SimpleSchema) (any, error) {
 	if schema != nil {
 		switch strings.Trim(schema.TypeName(), "\"") {
 		case "integer", "int", "int64", "int32", "int16":
@@ -949,14 +942,14 @@ func parseValueFromSchema(s string, schema *spec.SimpleSchema) (interface{}, err
 		case "number", "float64", "float32":
 			return strconv.ParseFloat(s, 64)
 		case "object":
-			var obj map[string]interface{}
+			var obj map[string]any
 			if err := json.Unmarshal([]byte(s), &obj); err != nil {
 				// If we can't parse it, just return the string.
 				return s, nil
 			}
 			return obj, nil
 		case "array":
-			var slice []interface{}
+			var slice []any
 			if err := json.Unmarshal([]byte(s), &slice); err != nil {
 				// If we can't parse it, just return the string.
 				return s, nil
@@ -1252,8 +1245,8 @@ func (ss *setSecurity) Parse(lines []string) error {
 		var key string
 
 		if len(kv) > 1 {
-			scs := strings.Split(kv[1], ",")
-			for _, scope := range scs {
+			scs := strings.SplitSeq(kv[1], ",")
+			for scope := range scs {
 				tr := strings.TrimSpace(scope)
 				if tr != "" {
 					tr = strings.SplitAfter(tr, " ")[0]
@@ -1439,7 +1432,7 @@ func (ss *setOpResponses) Parse(lines []string) error {
 					resp.Schema.Ref = ref
 				} else {
 					cs := resp.Schema
-					for i := 0; i < arrays; i++ {
+					for range arrays {
 						cs.Typed("array", "")
 						cs.Items = new(spec.SchemaOrArray)
 						cs.Items.Schema = new(spec.Schema)
@@ -1470,9 +1463,9 @@ func (ss *setOpResponses) Parse(lines []string) error {
 	return nil
 }
 
-func parseEnumOld(val string, s *spec.SimpleSchema) []interface{} {
+func parseEnumOld(val string, s *spec.SimpleSchema) []any {
 	list := strings.Split(val, ",")
-	interfaceSlice := make([]interface{}, len(list))
+	interfaceSlice := make([]any, len(list))
 	for i, d := range list {
 		v, err := parseValueFromSchema(d, s)
 		if err != nil {
@@ -1485,7 +1478,7 @@ func parseEnumOld(val string, s *spec.SimpleSchema) []interface{} {
 	return interfaceSlice
 }
 
-func parseEnum(val string, s *spec.SimpleSchema) []interface{} {
+func parseEnum(val string, s *spec.SimpleSchema) []any {
 	// obtain the raw elements of the list to latter process them with the parseValueFromSchema
 	var rawElements []json.RawMessage
 	if err := json.Unmarshal([]byte(val), &rawElements); err != nil {
@@ -1493,7 +1486,7 @@ func parseEnum(val string, s *spec.SimpleSchema) []interface{} {
 		return parseEnumOld(val, s)
 	}
 
-	interfaceSlice := make([]interface{}, len(rawElements))
+	interfaceSlice := make([]any, len(rawElements))
 
 	for i, d := range rawElements {
 
@@ -1531,10 +1524,10 @@ type setOpExtensions struct {
 
 type extensionObject struct {
 	Extension string
-	Root      interface{}
+	Root      any
 }
 
-type extensionParsingStack []interface{}
+type extensionParsingStack []any
 
 // Helper function to walk back through extensions until the proper nest level is reached
 func (stack *extensionParsingStack) walkBack(rawLines []string, lineIndex int) {
@@ -1617,9 +1610,9 @@ func buildExtensionObjects(rawLines []string, cleanLines []string, lineIndex int
 					*stack = append(*stack, ext.Root.(map[string]*[]string)[key])
 				} else {
 					// Extension is an object
-					ext.Root = make(map[string]interface{})
-					rootMap := make(map[string]interface{})
-					ext.Root.(map[string]interface{})[key] = rootMap
+					ext.Root = make(map[string]any)
+					rootMap := make(map[string]any)
+					ext.Root.(map[string]any)[key] = rootMap
 					stack = &extensionParsingStack{}
 					*stack = append(*stack, ext)
 					*stack = append(*stack, rootMap)
@@ -1632,18 +1625,18 @@ func buildExtensionObjects(rawLines []string, cleanLines []string, lineIndex int
 				if nextIsList {
 					// start of new list
 					newList := make([]string, 0)
-					(*stack)[stackIndex].(map[string]interface{})[key] = &newList
+					(*stack)[stackIndex].(map[string]any)[key] = &newList
 					*stack = append(*stack, &newList)
 				} else {
 					// start of new map
-					newMap := make(map[string]interface{})
-					(*stack)[stackIndex].(map[string]interface{})[key] = newMap
+					newMap := make(map[string]any)
+					(*stack)[stackIndex].(map[string]any)[key] = newMap
 					*stack = append(*stack, newMap)
 				}
 			} else {
 				// key:value
 				if reflect.TypeOf((*stack)[stackIndex]).Kind() == reflect.Map {
-					(*stack)[stackIndex].(map[string]interface{})[key] = value
+					(*stack)[stackIndex].(map[string]any)[key] = value
 				}
 				if lineIndex < len(rawLines)-1 && !rxAllowedExtensions.MatchString(cleanLines[lineIndex+1]) {
 					stack.walkBack(rawLines, lineIndex)

@@ -109,7 +109,7 @@ func prettyprint(b []byte) (io.ReadWriter, error) {
 }
 
 // JSONMarshal allows the item to be correctly rendered to json
-func JSONMarshal(t interface{}) ([]byte, error) {
+func JSONMarshal(t any) ([]byte, error) {
 	buffer := &bytes.Buffer{}
 	encoder := json.NewEncoder(buffer)
 	encoder.SetEscapeHTML(false)

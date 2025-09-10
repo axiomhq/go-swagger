@@ -12,7 +12,7 @@ import (
 
 func Test_getRef(t *testing.T) {
 	type args struct {
-		item interface{}
+		item any
 	}
 	aRef, _ := spec.NewRef("hello")
 	tests := []struct {
@@ -103,8 +103,8 @@ func arraySchemaOf(typename string) *spec.Schema {
 func TestCheckToFromPrimitiveType(t *testing.T) {
 	type args struct {
 		diffs []TypeDiff
-		type1 interface{}
-		type2 interface{}
+		type1 any
+		type2 any
 	}
 	tests := []struct {
 		name string
@@ -125,8 +125,8 @@ func TestCheckToFromPrimitiveType(t *testing.T) {
 func TestCheckRefChange(t *testing.T) {
 	type args struct {
 		diffs []TypeDiff
-		type1 interface{}
-		type2 interface{}
+		type1 any
+		type2 any
 	}
 	tests := []struct {
 		name           string
@@ -178,8 +178,8 @@ func Test_isRef(t *testing.T) {
 
 func Test_compareEnums(t *testing.T) {
 	type args struct {
-		left  []interface{}
-		right []interface{}
+		left  []any
+		right []any
 	}
 	tests := []struct {
 		name string
@@ -393,7 +393,7 @@ func Test_propertiesFor(t *testing.T) {
 	}
 }
 
-func jsonStr(thing interface{}) string {
+func jsonStr(thing any) string {
 	bstr, _ := JSONMarshal(thing)
 	return string(bstr)
 }

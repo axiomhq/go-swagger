@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"maps"
 	"net/http"
 	"os"
 	"sync"
@@ -128,9 +129,7 @@ func updateItem(id int64, body map[string]any) (map[string]any, error) {
 		return nil, err
 	}
 	delete(body, "id")
-	for k, v := range body {
-		item[k] = v
-	}
+	maps.Copy(item, body)
 	return item, nil
 }
 

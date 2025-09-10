@@ -8,7 +8,7 @@ import (
 )
 
 // CompareEnums returns added, deleted enum values
-func CompareEnums(left, right []interface{}) []TypeDiff {
+func CompareEnums(left, right []any) []TypeDiff {
 	diffs := []TypeDiff{}
 
 	leftStrs := []string{}
@@ -45,7 +45,6 @@ func CompareProperties(location DifferenceLocation, schema1 *spec.Schema, schema
 
 	// find deleted and changed properties
 	for eachProp1Name, eachProp1 := range schema1Props {
-		eachProp1 := eachProp1
 		childLoc := addChildDiffNode(location, eachProp1Name, eachProp1.Schema)
 
 		if eachProp2, ok := schema2Props[eachProp1Name]; ok {
@@ -63,7 +62,6 @@ func CompareProperties(location DifferenceLocation, schema1 *spec.Schema, schema
 
 	// find added properties
 	for eachProp2Name, eachProp2 := range schema2.Properties {
-		eachProp2 := eachProp2
 		if _, ok := schema1.Properties[eachProp2Name]; !ok {
 			childLoc := addChildDiffNode(location, eachProp2Name, &eachProp2)
 
@@ -121,7 +119,7 @@ func CompareIntValues(fieldName string, val1 *int64, val2 *int64, ifGreaterCode 
 }
 
 // CheckToFromPrimitiveType check for diff to or from a primitive
-func CheckToFromPrimitiveType(diffs []TypeDiff, type1, type2 interface{}) []TypeDiff {
+func CheckToFromPrimitiveType(diffs []TypeDiff, type1, type2 any) []TypeDiff {
 	type1IsPrimitive := isPrimitive(type1)
 	type2IsPrimitive := isPrimitive(type2)
 
@@ -136,7 +134,7 @@ func CheckToFromPrimitiveType(diffs []TypeDiff, type1, type2 interface{}) []Type
 }
 
 // CheckRefChange has the property ref changed
-func CheckRefChange(diffs []TypeDiff, type1, type2 interface{}) (diffReturn []TypeDiff) {
+func CheckRefChange(diffs []TypeDiff, type1, type2 any) (diffReturn []TypeDiff) {
 	diffReturn = diffs
 	if isRefType(type1) && isRefType(type2) {
 		// both refs but to different objects (TODO detect renamed object)
@@ -253,7 +251,7 @@ func getTypeHierarchyChange(type1, type2 string) TypeDiff {
 	return TypeDiff{Change: ChangedType, Description: diffDescription}
 }
 
-func isRefType(item interface{}) bool {
+func isRefType(item any) bool {
 	switch s := item.(type) {
 	case spec.Refable:
 		return s.Ref.String() != ""

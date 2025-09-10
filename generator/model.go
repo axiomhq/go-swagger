@@ -18,8 +18,10 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"maps"
 	"path"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -390,44 +392,32 @@ func findImports(sch *GenSchema) map[string]string {
 	}
 	if sch.Items != nil {
 		sub := findImports(sch.Items)
-		for k, v := range sub {
-			imp[k] = v
-		}
+		maps.Copy(imp, sub)
 	}
 	if sch.AdditionalItems != nil {
 		sub := findImports(sch.AdditionalItems)
-		for k, v := range sub {
-			imp[k] = v
-		}
+		maps.Copy(imp, sub)
 	}
 	if sch.Object != nil {
 		sub := findImports(sch.Object)
-		for k, v := range sub {
-			imp[k] = v
-		}
+		maps.Copy(imp, sub)
 	}
 	if sch.Properties != nil {
 		for _, props := range sch.Properties {
 			p := props
 			sub := findImports(&p)
-			for k, v := range sub {
-				imp[k] = v
-			}
+			maps.Copy(imp, sub)
 		}
 	}
 	if sch.AdditionalProperties != nil {
 		sub := findImports(sch.AdditionalProperties)
-		for k, v := range sub {
-			imp[k] = v
-		}
+		maps.Copy(imp, sub)
 	}
 	if sch.AllOf != nil {
 		for _, props := range sch.AllOf {
 			p := props
 			sub := findImports(&p)
-			for k, v := range sub {
-				imp[k] = v
-			}
+			maps.Copy(imp, sub)
 		}
 	}
 	for k, v := range sch.ExtraImports {
@@ -574,11 +564,8 @@ func (sg *schemaGenContext) NewStructBranch(name string, schema spec.Schema) *sc
 	pg.ValueExpr = pg.ValueExpr + "." + pascalize(goName(&schema, name))
 	pg.Schema = schema
 	pg.IsProperty = true
-	for _, fn := range sg.Schema.Required {
-		if name == fn {
-			pg.Required = true
-			break
-		}
+	if slices.Contains(sg.Schema.Required, name) {
+		pg.Required = true
 	}
 	debugLog("made new struct branch %s (parent %s)", pg.Name, pg.Container)
 	return pg
@@ -736,9 +723,7 @@ func (sg *schemaGenContext) MergeResult(other *schemaGenContext, liftsRequired b
 	sg.Dependencies = append(sg.Dependencies, other.Dependencies...)
 
 	// lift extra schemas
-	for k, v := range other.ExtraSchemas {
-		sg.ExtraSchemas[k] = v
-	}
+	maps.Copy(sg.ExtraSchemas, other.ExtraSchemas)
 	if other.GenSchema.IsMapNullOverride {
 		sg.GenSchema.IsMapNullOverride = true
 	}
@@ -747,9 +732,7 @@ func (sg *schemaGenContext) MergeResult(other *schemaGenContext, liftsRequired b
 	if other.GenSchema.Pkg != "" && other.GenSchema.PkgAlias != "" {
 		sg.GenSchema.ExtraImports[other.GenSchema.PkgAlias] = other.GenSchema.Pkg
 	}
-	for k, v := range other.GenSchema.ExtraImports {
-		sg.GenSchema.ExtraImports[k] = v
-	}
+	maps.Copy(sg.GenSchema.ExtraImports, other.GenSchema.ExtraImports)
 }
 
 func (sg *schemaGenContext) buildProperties() error {

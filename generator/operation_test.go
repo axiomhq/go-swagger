@@ -1040,7 +1040,7 @@ func TestBuilder_Issue1214(t *testing.T) {
 	op, e := appGen.makeCodegenApp()
 	require.NoError(t, e)
 
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		buf := bytes.NewBuffer(nil)
 		err := templates.MustGet("serverConfigureapi").Execute(buf, op)
 		require.NoError(t, err)
@@ -1096,7 +1096,7 @@ func TestBuilder_Issue1214(t *testing.T) {
 }
 
 func TestGenSecurityRequirements(t *testing.T) {
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		operation := "asecOp"
 		b, err := opBuilder(operation, "../fixtures/bugs/1214/fixture-1214.yaml")
 		require.NoError(t, err)
@@ -1275,7 +1275,7 @@ func TestBuilder_Issue1646(t *testing.T) {
 	preProds, preProdj := appGen.makeProduces()
 	assert.True(t, preConj)
 	assert.True(t, preProdj)
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		cons, conj := appGen.makeConsumes()
 		prods, prodj := appGen.makeProduces()
 		assert.True(t, conj)

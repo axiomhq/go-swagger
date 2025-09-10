@@ -3,6 +3,7 @@ package auth
 import (
 	"crypto/rsa"
 	"os"
+	"slices"
 
 	jwt "github.com/golang-jwt/jwt/v5"
 
@@ -85,13 +86,7 @@ func IsReseller(token string) (*models.Principal, error) {
 		return nil, errors.New(403, "Forbidden: insufficient API key privileges")
 	}
 
-	isReseller := false
-	for _, role := range claims.Roles {
-		if role == "reseller" {
-			isReseller = true
-			break
-		}
-	}
+	isReseller := slices.Contains(claims.Roles, "reseller")
 
 	if !isReseller {
 		return nil, errors.New(403, "Forbidden: insufficient API key privileges")

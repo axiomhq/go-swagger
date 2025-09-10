@@ -352,7 +352,7 @@ func verifySwaggerOneArgSwaggerTag(t *testing.T, matcher *regexp.Regexp, prefixe
 
 func verifySwaggerMultiArgSwaggerTag(t *testing.T, matcher *regexp.Regexp, prefixes, validParams, invalidParams []string) {
 	var actualParams []string
-	for i := 0; i < len(validParams); i++ {
+	for i := range validParams {
 		var vp []string
 		for j := 0; j < (i + 1); j++ {
 			vp = append(vp, validParams[j])
